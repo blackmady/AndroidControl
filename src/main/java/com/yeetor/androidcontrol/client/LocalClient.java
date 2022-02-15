@@ -27,10 +27,6 @@
 package com.yeetor.androidcontrol.client;
 
 import com.alibaba.fastjson.JSONObject;
-import com.android.ddmlib.AdbCommandRejectedException;
-import com.android.ddmlib.IDevice;
-import com.android.ddmlib.SyncException;
-import com.android.ddmlib.TimeoutException;
 import com.yeetor.adb.AdbDevice;
 import com.yeetor.adb.AdbServer;
 import com.yeetor.androidcontrol.Command;
@@ -38,16 +34,14 @@ import com.yeetor.androidcontrol.Protocol;
 import com.yeetor.minicap.Banner;
 import com.yeetor.minicap.Minicap;
 import com.yeetor.minicap.MinicapListener;
-import com.yeetor.minitouch.Minitouch;
-import com.yeetor.minitouch.MinitouchListener;
+import com.yeetor.touch.minitouch.Minitouch;
+import com.yeetor.touch.minitouch.MinitouchListener;
 import com.yeetor.util.Constant;
 import io.netty.buffer.Unpooled;
 import io.netty.channel.ChannelHandlerContext;
 import io.netty.handler.codec.http.websocketx.BinaryWebSocketFrame;
 import io.netty.handler.codec.http.websocketx.TextWebSocketFrame;
 
-import java.io.File;
-import java.io.IOException;
 import java.util.concurrent.BlockingQueue;
 import java.util.concurrent.LinkedBlockingQueue;
 

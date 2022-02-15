@@ -1,5 +1,14 @@
 # AndroidControl
 
+> ** 继续维护 By alien.he ** 
+
+## minicap更新支持安卓10
+## minitouch支持安卓10+
+本来是打算直接用minitouch，但是发现minitouch说由于安全策略限制，安卓10需要配合STFService.apk才能使用，而且试了下发现启动会影响minicap读取图片，因此决定采用scrcpy中InputManager的方式实现模拟点击。
+
+
+> 分割线
+
 > **非常抱歉，因为工作繁忙，有很长一段时间没有更新了。 有很多人加群也没有及时通过。。。在这里郑重的说声 抱歉！ 非常感谢大家的支持！**
 
 

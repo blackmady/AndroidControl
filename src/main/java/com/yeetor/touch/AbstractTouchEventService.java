@@ -24,17 +24,35 @@
  *
  */
 
-package com.yeetor.minitouch;
+package com.yeetor.touch;
 
-import com.yeetor.minicap.Banner;
-import com.yeetor.minicap.Minicap;
+import com.yeetor.adb.AdbDevice;
 
-/**
- * Created by harry on 2017/4/19.
- */
-public interface MinitouchListener {
-    // minitouch启动完毕后
-    public void onStartup(Minitouch minitouch, boolean success);
-    // minitouch关闭后
-    public void onClose(Minitouch minitouch);
+public abstract class AbstractTouchEventService implements TouchEventService{
+
+    private final AdbDevice device;
+
+    public AbstractTouchEventService(AdbDevice adbDevice){
+        this.device = adbDevice;
+        try {
+            installService();
+        } catch (TouchServiceException e) {
+            e.printStackTrace();
+        }
+    }
+
+    protected void installService() throws TouchServiceException {
+        if(device == null){
+            throw new TouchServiceException("device can not be null");
+        }
+
+        if(isInstalled()){
+           return;
+        }
+
+        install();
+    }
+
+    protected abstract boolean isInstalled();
+
 }

@@ -26,13 +26,11 @@
 
 package com.yeetor.engine;
 
-import com.android.ddmlib.IDevice;
-import com.google.common.util.concurrent.ListenableFuture;
 import com.google.common.util.concurrent.SettableFuture;
 import com.yeetor.adb.AdbDevice;
 import com.yeetor.adb.AdbServer;
-import com.yeetor.minitouch.Minitouch;
-import com.yeetor.minitouch.MinitouchListener;
+import com.yeetor.touch.minitouch.Minitouch;
+import com.yeetor.touch.minitouch.MinitouchListener;
 
 import java.util.concurrent.ExecutionException;
 
