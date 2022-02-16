@@ -24,16 +24,15 @@
  *
  */
 
-package com.yeetor.minitouch;
+package com.yeetor.touch.minitouch;
 
-import com.android.ddmlib.IDevice;
 import com.android.ddmlib.IShellOutputReceiver;
 import com.yeetor.adb.AdbDevice;
 import com.yeetor.adb.AdbForward;
 import com.yeetor.adb.AdbServer;
-import com.yeetor.minicap.MinicapInstallException;
+import com.yeetor.adb.AdbUtils;
+import com.yeetor.touch.TouchServiceException;
 import com.yeetor.util.Constant;
-import com.yeetor.util.Util;
 import org.apache.commons.lang3.StringUtils;
 
 import java.io.File;
@@ -61,9 +60,9 @@ public class Minitouch {
     private OutputStream minitouchOutputStream;
     private AdbForward forward;
 
-    public static void installMinitouch(AdbDevice device) throws MinitouchInstallException {
+    public static void installMinitouch(AdbDevice device) throws TouchServiceException {
         if (device == null) {
-            throw new MinitouchInstallException("device can't be null");
+            throw new TouchServiceException("device can't be null");
         }
 
         if (isMinitouchInstalled(device)) {
@@ -74,7 +73,7 @@ public class Minitouch {
         String abi = device.getProperty(Constant.PROP_ABI);
 
         if (StringUtils.isEmpty(sdk) || StringUtils.isEmpty(abi)) {
-            throw new MinitouchInstallException("cant not get device info. please check device is connected");
+            throw new TouchServiceException("cant not get device info. please check device is connected");
         }
 
         sdk = sdk.trim();
@@ -82,12 +81,12 @@ public class Minitouch {
 
         File minitouch_bin = Constant.getMinitouchBin(abi);
         if (minitouch_bin == null || !minitouch_bin.exists()) {
-            throw new MinitouchInstallException("File: " + minitouch_bin.getAbsolutePath() + " not exists!");
+            throw new TouchServiceException("File: " + minitouch_bin.getAbsolutePath() + " not exists!");
         }
         try {
             AdbServer.server().executePushFile(device.getIDevice(), minitouch_bin.getAbsolutePath(), REMOTE_PATH + "/" + MINITOUCH_BIN);
         } catch (Exception e) {
-            throw new MinitouchInstallException(e.getMessage());
+            throw new TouchServiceException(e.getMessage());
         }
 
         AdbServer.executeShellCommand(device.getIDevice(), "chmod 777 " + REMOTE_PATH + "/" + MINITOUCH_BIN);
@@ -98,7 +97,7 @@ public class Minitouch {
 
         try {
             installMinitouch(device);
-        } catch (MinitouchInstallException e) {
+        } catch (TouchServiceException e) {
             e.printStackTrace();
         }
     }
@@ -117,30 +116,12 @@ public class Minitouch {
         }
     }
 
-    public AdbForward createForward() {
-        forward = generateForwardInfo();
-        try {
-            device.getIDevice().createForward(forward.getPort(), forward.getLocalabstract(), IDevice.DeviceUnixSocketNamespace.ABSTRACT);
-        } catch (Exception e) {
-            e.printStackTrace();
-            System.out.println("create forward failed");
+    public void start() throws TouchServiceException {
+        AdbForward forward = AdbUtils.createForward(device);
+        if(forward == null){
+            throw new TouchServiceException("create forward failed");
         }
-        return forward;
-    }
-
-    private void removeForward(AdbForward forward) {
-        if (forward == null || !forward.isForward()) {
-            return;
-        }
-        try {
-            device.getIDevice().removeForward(forward.getPort(), forward.getLocalabstract(), IDevice.DeviceUnixSocketNamespace.ABSTRACT);
-        } catch (Exception e) {
-        }
-    }
-
-    public void start() {
-        AdbForward forward = createForward();
-        String command = "/data/local/tmp/minitouch" + " -n " + forward.getLocalabstract();
+        String command = "/data/local/tmp/minitouch" + " -n " + forward.getLocalAbstract();
         minitouchThread = startMinitouchThread(command);
         minitouchInitialThread = startInitialThread("127.0.0.1", forward.getPort());
     }
@@ -177,33 +158,6 @@ public class Minitouch {
 
     public void inputText(String str) {
         AdbServer.executeShellCommand(device.getIDevice(), "input text " + str);
-    }
-
-    /**
-     * 生成forward信息
-     */
-    private AdbForward generateForwardInfo() {
-        AdbForward[] forwards = AdbServer.server().getForwardList();
-        // serial_touch_number
-        int maxNumber = 0;
-        if (forwards.length > 0) {
-            for (AdbForward forward : forwards) {
-                if (forward.getSerialNumber().equals(device.getIDevice().getSerialNumber())) {
-                    String l = forward.getLocalabstract();
-                    String[] s = l.split("_");
-                    if (s.length == 3) {
-                        int n = Integer.parseInt(s[2]);
-                        if (n > maxNumber) maxNumber = n;
-                    }
-                }
-            }
-        }
-        maxNumber += 1;
-
-        String forwardStr = String.format("%s_touch_%d", device.getIDevice().getSerialNumber(), maxNumber);
-        int freePort = Util.getFreePort();
-        AdbForward forward = new AdbForward(device.getIDevice().getSerialNumber(), freePort, forwardStr);
-        return forward;
     }
 
     private Thread startMinitouchThread(final String command) {
@@ -288,7 +242,7 @@ public class Minitouch {
         for (MinitouchListener listener : listenerList) {
             listener.onClose(this);
         }
-        removeForward(forward);
+        AdbUtils.removeForward(device,forward);
     }
 
     private static boolean isMinitouchInstalled(AdbDevice device) {

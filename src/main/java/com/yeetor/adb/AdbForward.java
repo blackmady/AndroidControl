@@ -29,14 +29,14 @@ package com.yeetor.adb;
 public class AdbForward {
     private String serialNumber;
     private int port;
-    private String localabstract;
+    private String localAbstract;
 
     private boolean isForward = true;
 
     public AdbForward(String serialNumber, int port, String localabstract) {
         this.serialNumber = serialNumber;
         this.port = port;
-        this.localabstract = localabstract;
+        this.localAbstract = localabstract;
     }
 
     public AdbForward(String str) {
@@ -47,20 +47,19 @@ public class AdbForward {
         }
 
         serialNumber = s[0];
-        String[] portstr = s[1].split(":");
-        if (portstr.length == 2) {
-            port = Integer.parseInt(portstr[1]);
+        String[] portStr = s[1].split(":");
+        if (portStr.length == 2) {
+            port = Integer.parseInt(portStr[1]);
         } else {
             isForward = false;
             return;
         }
 
-        String[] localabstractStr = s[2].split(":");
-        if (localabstractStr.length == 2) {
-            localabstract = localabstractStr[1];
+        String[] localAbstractStr = s[2].split(":");
+        if (localAbstractStr.length == 2) {
+            localAbstract = localAbstractStr[1];
         } else {
             isForward = false;
-            return;
         }
     }
 
@@ -68,8 +67,8 @@ public class AdbForward {
         return port;
     }
 
-    public String getLocalabstract() {
-        return localabstract;
+    public String getLocalAbstract() {
+        return localAbstract;
     }
 
     public String getSerialNumber() {

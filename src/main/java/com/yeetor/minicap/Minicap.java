@@ -188,7 +188,7 @@ public class Minicap extends ScreencapBase {
     public AdbForward createForward() {
         forward = generateForwardInfo();
         try {
-            device.getIDevice().createForward(forward.getPort(), forward.getLocalabstract(), IDevice.DeviceUnixSocketNamespace.ABSTRACT);
+            device.getIDevice().createForward(forward.getPort(), forward.getLocalAbstract(), IDevice.DeviceUnixSocketNamespace.ABSTRACT);
         } catch (Exception e) {
             e.printStackTrace();
             System.out.println("create forward failed");
@@ -201,7 +201,7 @@ public class Minicap extends ScreencapBase {
             return;
         }
         try {
-            device.getIDevice().removeForward(forward.getPort(), forward.getLocalabstract(), IDevice.DeviceUnixSocketNamespace.ABSTRACT);
+            device.getIDevice().removeForward(forward.getPort(), forward.getLocalAbstract(), IDevice.DeviceUnixSocketNamespace.ABSTRACT);
             forward = null;
         } catch (Exception e) {
             e.printStackTrace();
@@ -257,7 +257,7 @@ public class Minicap extends ScreencapBase {
 
     public void start(int ow, int oh, int dw, int dh, int rotate, boolean shipFrame, String[] args) {
         AdbForward forward = createForward();
-        String command = getMinicapCommand(ow, oh, dw, dh ,rotate, shipFrame, forward.getLocalabstract(), args);
+        String command = getMinicapCommand(ow, oh, dw, dh ,rotate, shipFrame, forward.getLocalAbstract(), args);
         logger.info("start minicap:" + command);
         minicapThread = startMinicapThread(command);
         minicapInitialThread = startInitialThread("127.0.0.1", forward.getPort());
@@ -411,7 +411,7 @@ public class Minicap extends ScreencapBase {
         if (forwards.length > 0) {
             for (AdbForward forward : forwards) {
                 if (forward.getSerialNumber().equals(device.getIDevice().getSerialNumber())) {
-                    String l = forward.getLocalabstract();
+                    String l = forward.getLocalAbstract();
                     String[] s = l.split("_");
                     if (s.length == 3) {
                         int n = Integer.parseInt(s[2]);

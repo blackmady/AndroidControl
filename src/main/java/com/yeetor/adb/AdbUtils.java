@@ -27,7 +27,9 @@
 package com.yeetor.adb;
 
 import com.alibaba.fastjson.JSON;
+import com.android.ddmlib.IDevice;
 import com.yeetor.androidcontrol.DeviceInfo;
+import com.yeetor.util.Util;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -48,6 +50,56 @@ public class AdbUtils {
             list.add(new DeviceInfo(device));
         }
         return JSON.toJSONString(list);
+    }
+
+
+    public static void removeForward(AdbDevice adbDevice,AdbForward forward) {
+        if (forward == null || !forward.isForward()) {
+            return;
+        }
+        try {
+            adbDevice.getIDevice().removeForward(forward.getPort(), forward.getLocalAbstract(), IDevice.DeviceUnixSocketNamespace.ABSTRACT);
+        } catch (Exception e) {
+            e.printStackTrace();
+        }
+    }
+
+    public static AdbForward createForward(AdbDevice adbDevice){
+        AdbForward adbForward = generateForwardInfo(adbDevice);
+        try {
+            adbDevice.getIDevice().createForward(adbForward.getPort(), adbForward.getLocalAbstract(), IDevice.DeviceUnixSocketNamespace.ABSTRACT);
+            return adbForward;
+        } catch (Exception e) {
+            System.out.println("create forward failed");
+            e.printStackTrace();
+            return null;
+        }
+    }
+
+    /**
+     * 生成forward信息
+     */
+    private static AdbForward generateForwardInfo(AdbDevice adbDevice) {
+        AdbForward[] forwards = AdbServer.server().getForwardList();
+        // serial_touch_number
+        int maxNumber = 0;
+        if (forwards.length > 0) {
+            for (AdbForward forward : forwards) {
+                if (forward.getSerialNumber().equals(adbDevice.getIDevice().getSerialNumber())) {
+                    String l = forward.getLocalAbstract();
+                    String[] s = l.split("_");
+                    if (s.length == 3) {
+                        int n = Integer.parseInt(s[2]);
+                        if (n > maxNumber) maxNumber = n;
+                    }
+                }
+            }
+        }
+        maxNumber += 1;
+
+        String forwardStr = String.format("%s_touch_%d", adbDevice.getIDevice().getSerialNumber(), maxNumber);
+        int freePort = Util.getFreePort();
+        return new AdbForward(adbDevice.getIDevice().getSerialNumber(), freePort, forwardStr);
     }
     
 }

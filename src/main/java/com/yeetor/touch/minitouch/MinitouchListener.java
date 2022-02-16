@@ -24,13 +24,14 @@
  *
  */
 
-package com.yeetor.minitouch;
+package com.yeetor.touch.minitouch;
 
 /**
  * Created by harry on 2017/4/19.
  */
-public class MinitouchInstallException extends Exception {
-    public MinitouchInstallException(String description) {
-        super(description);
-    }
+public interface MinitouchListener {
+    // minitouch启动完毕后
+    public void onStartup(Minitouch minitouch, boolean success);
+    // minitouch关闭后
+    public void onClose(Minitouch minitouch);
 }
