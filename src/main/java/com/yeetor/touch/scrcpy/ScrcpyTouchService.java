@@ -30,12 +30,15 @@ import com.android.ddmlib.AdbCommandRejectedException;
 import com.android.ddmlib.IShellOutputReceiver;
 import com.android.ddmlib.ShellCommandUnresponsiveException;
 import com.android.ddmlib.TimeoutException;
+import com.google.common.collect.Lists;
 import com.yeetor.adb.AdbDevice;
 import com.yeetor.adb.AdbForward;
 import com.yeetor.adb.AdbServer;
 import com.yeetor.adb.AdbUtils;
 import com.yeetor.touch.AbstractTouchEventService;
 import com.yeetor.touch.TouchServiceException;
+import com.yeetor.touch.scrcpy.packet.ScControlMsg;
+import com.yeetor.touch.scrcpy.packet.TouchEventMsg;
 import com.yeetor.util.Constant;
 import org.apache.commons.lang3.StringUtils;
 import org.apache.log4j.Logger;
@@ -44,6 +47,7 @@ import java.io.File;
 import java.io.IOException;
 import java.io.OutputStream;
 import java.net.Socket;
+import java.util.List;
 
 public class ScrcpyTouchService extends AbstractTouchEventService {
 
@@ -89,7 +93,45 @@ public class ScrcpyTouchService extends AbstractTouchEventService {
         }
 
         // convert to scrcpy msg
+        LOGGER.info("receive event:" + msg);
+        if(StringUtils.isBlank(msg)){
+            return;
+        }
 
+        List<String> packets = Lists.newArrayList();
+        for(String c : msg.split(" ")){
+            if(StringUtils.isBlank(c)){
+                continue;
+            }
+            packets.add(c);
+        }
+
+        ScControlMsg eventMsg = null;
+        switch (packets.get(0)){
+        case "d":
+        case "u":
+            int x = Integer.parseInt(packets.get(2));
+            int y = Integer.parseInt(packets.get(3));
+            int pressure = Integer.parseInt(packets.get(4));
+
+            // ACTION_UP 1 / ACTION_DOWN 0
+            int action = StringUtils.equals(packets.get(0),"d") ? 0 : 1;
+            eventMsg = new TouchEventMsg(action,x,y,1080,2280,pressure);
+            break;
+        case "c":
+            break;
+        default:
+            LOGGER.info("暂不支持的事件:" + packets.get(0));
+            return;
+        }
+
+        if(eventMsg != null){
+            try {
+                controlSocketOutputStream.write(eventMsg.serialize());
+            } catch (IOException e) {
+                e.printStackTrace();
+            }
+        }
     }
 
     @Override
@@ -140,6 +182,7 @@ public class ScrcpyTouchService extends AbstractTouchEventService {
                         // 第二个才为control socket
                         socket = new Socket(host,port);
 
+                        // todo read one byte to test connection
                         if(socket.isConnected()){
                             controlSocket = socket;
                             controlSocketOutputStream = socket.getOutputStream();
