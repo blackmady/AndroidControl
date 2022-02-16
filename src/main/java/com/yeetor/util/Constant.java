@@ -133,6 +133,14 @@ public class Constant {
         return null;
     }
 
+    public static File getScrcpyServerJar(){
+        File resources = Constant.getResourceDir();
+        if(resources.exists()){
+            return new File(resources,"scrcpy-server-v1.22");
+        }
+        return null;
+    }
+
     public static File getTmpFile(String fileName) {
         String tmpdir = System.getProperty("java.io.tmpdir");
         File tmp = new File(tmpdir);

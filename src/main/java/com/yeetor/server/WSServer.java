@@ -35,6 +35,7 @@ import com.yeetor.adb.IAdbServerListener;
 import com.yeetor.minicap.Banner;
 import com.yeetor.minicap.Minicap;
 import com.yeetor.minicap.MinicapListener;
+import com.yeetor.touch.TouchServiceException;
 import com.yeetor.touch.minitouch.Minitouch;
 import com.yeetor.touch.minitouch.MinitouchListener;
 import com.yeetor.protocol.BinaryProtocol;
@@ -215,7 +216,11 @@ public class WSServer implements IWebsocketEvent, MinicapListener, MinitouchList
         Minitouch minitouch = new Minitouch(bindedDevice);
         this.eventService = minitouch;
         minitouch.addEventListener(this);
-        minitouch.start();
+        try {
+            minitouch.start();
+        } catch (TouchServiceException e) {
+            e.printStackTrace();
+        }
     }
     
     private void sendProtocolResponse(TextProtocol protocol) {

@@ -76,8 +76,20 @@ public class AdbUtils {
         }
     }
 
+    public static AdbForward createForward(AdbDevice adbDevice,String remoteAbstract){
+        try {
+            AdbForward adbForward = new AdbForward(adbDevice.getIDevice().getSerialNumber(), Util.getFreePort(), remoteAbstract);
+            adbDevice.getIDevice().createForward(adbForward.getPort(), adbForward.getLocalAbstract(), IDevice.DeviceUnixSocketNamespace.ABSTRACT);
+            return adbForward;
+        } catch (Exception e) {
+            System.out.println("create forward failed");
+            e.printStackTrace();
+            return null;
+        }
+    }
+
     /**
-     * 生成forward信息
+     * 生成forward信息，主要给minitouch使用
      */
     private static AdbForward generateForwardInfo(AdbDevice adbDevice) {
         AdbForward[] forwards = AdbServer.server().getForwardList();

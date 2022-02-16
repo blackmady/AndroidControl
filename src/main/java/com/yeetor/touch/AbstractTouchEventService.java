@@ -30,7 +30,7 @@ import com.yeetor.adb.AdbDevice;
 
 public abstract class AbstractTouchEventService implements TouchEventService{
 
-    private final AdbDevice device;
+    protected final AdbDevice device;
 
     public AbstractTouchEventService(AdbDevice adbDevice){
         this.device = adbDevice;
