@@ -36,9 +36,10 @@ import com.yeetor.androidcontrol.message.FileMessage;
 import com.yeetor.minicap.Banner;
 import com.yeetor.minicap.Minicap;
 import com.yeetor.minicap.MinicapListener;
+import com.yeetor.touch.TouchEventService;
 import com.yeetor.touch.TouchServiceException;
 import com.yeetor.touch.minitouch.Minitouch;
-import com.yeetor.touch.minitouch.MinitouchListener;
+import com.yeetor.touch.TouchEventServiceListener;
 import com.yeetor.util.Constant;
 
 import java.io.File;
@@ -54,7 +55,7 @@ import java.util.concurrent.LinkedBlockingQueue;
 /**
  * Created by harry on 2017/5/3.
  */
-public class RemoteClient extends BaseClient implements MinicapListener, MinitouchListener {
+public class RemoteClient extends BaseClient implements MinicapListener, TouchEventServiceListener {
 
     static final int DATA_TIMEOUT = 100; //ms
     private boolean isWaitting = false;
@@ -122,14 +123,14 @@ public class RemoteClient extends BaseClient implements MinicapListener, Minitou
     }
 
     @Override
-    public void onStartup(Minitouch minitouch, boolean success) {
+    public void onStartup(TouchEventService touchEventService, boolean success) {
         if (ws != null) {
             ws.sendText("minitouch://open");
         }
     }
 
     @Override
-    public void onClose(Minitouch minitouch) {
+    public void onClose(TouchEventService touchEventService) {
         if (ws != null) {
             ws.sendText("minitouch://close");
         }

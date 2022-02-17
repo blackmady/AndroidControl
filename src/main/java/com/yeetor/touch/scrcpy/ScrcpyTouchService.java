@@ -61,10 +61,12 @@ public class ScrcpyTouchService extends AbstractTouchEventService {
     /**
      * debug时手动adb启动scrcpy-server，只需要直接连接端口
      */
-    private static final boolean isDebug = true;
+    private static final boolean isDebug = false;
 
     private Thread scrcpyServerCmdThread;
     private Thread scrcpySocketThread;
+    private AdbForward forward;
+    private Socket videoSocket;
     private Socket controlSocket;
     private OutputStream controlSocketOutputStream;
 
@@ -83,6 +85,7 @@ public class ScrcpyTouchService extends AbstractTouchEventService {
         LOGGER.info("============> create scrcpy touch service:" + adbDevice.getSerialNumber());
         this.screenWidth = 1080;
         this.screenHeight = 2400;
+        this.forceInstall = true;
     }
 
     @Override
@@ -96,6 +99,9 @@ public class ScrcpyTouchService extends AbstractTouchEventService {
 
     @Override
     public void install() throws TouchServiceException {
+        if(isDebug){
+            return;
+        }
         // adb push scrcpy-server.jar to /data/local/tmp
         File scrcpyServer = Constant.getScrcpyServerJar();
         if (!scrcpyServer.exists()) {
@@ -215,17 +221,21 @@ public class ScrcpyTouchService extends AbstractTouchEventService {
             }
             command += DEBUGGER_PORT;
         }
-        command += " / com.genymobile.scrcpy.Server 1.22 log_level=verbose bit_rate=8000000 tunnel_forward=true";
+        // redmi note 9 android.media.MediaCodec$CodecException: Error 0xfffffff4
+        // https://github.com/Genymobile/scrcpy/issues/833
+        // pass an invalid encoder name to list all encoders
+        command += " / com.genymobile.scrcpy.Server 1.22 log_level=verbose bit_rate=8000000 tunnel_forward=true send_dummy_byte=true";
         LOGGER.info("scrcpy start command:" + command);
         scrcpyServerCmdThread = startScrcpy(command);
 
         // adb forward tcp:port scrcpy
         // todo 定制scrcpy监听的端口名称
         String scrcpySocketName = "scrcpy";
-        AdbForward forward = AdbUtils.createForward(this.device, scrcpySocketName);
+        forward = AdbUtils.createForward(this.device, scrcpySocketName);
         if (forward == null) {
             throw new TouchServiceException("create scrcpy forward failed!");
         }
+
         // connect to scrcpy socket to send control message
         scrcpySocketThread = startScrcpyControl("127.0.0.1", forward.getPort());
     }
@@ -234,31 +244,59 @@ public class ScrcpyTouchService extends AbstractTouchEventService {
         Thread thread = new Thread(new Runnable() {
             @Override
             public void run() {
+                try {
+                    Thread.sleep(2000);
+                } catch (InterruptedException e) {
+                    e.printStackTrace();
+                }
+
                 int tryTime = 200;
                 while (true) {
                     // todo 修改scrcpy 去除多余的socket连接
-                    Socket socket = null;
+                    Socket tmpVideoSocket = null;
+                    Socket tmpControlsocket = null;
                     try {
-                        // 第一个socket为video socket
-                        socket = new Socket(host, port);
-                        // 第二个才为control socket
-                        socket = new Socket(host, port);
-
-                        // read one byte to test the connection
                         byte[] bytes = new byte[256];
-                        int n = socket.getInputStream().read(bytes);
-                        if(n == -1){
+                        // 第一个socket为video socket
+                        tmpVideoSocket = new Socket(host, port);
+                        // read one byte to test the connection
+                        int readNum = tmpVideoSocket.getInputStream().read(bytes);
+                        if(readNum == -1){
                             Thread.sleep(10);
-                            socket.close();
+                            tmpVideoSocket.close();
+                            continue;
+                        }else {
+                            videoSocket = tmpVideoSocket;
+                            LOGGER.info("scrcpy video socket 建立成功!");
+                        }
+
+                        // 第二个才为control socket
+                        tmpControlsocket = new Socket(host, port);
+                        readNum = tmpControlsocket.getInputStream().read(bytes);
+                        if(readNum == -1){
+                            Thread.sleep(10);
+                            tmpControlsocket.close();
+                            continue;
                         }else{
-                            controlSocket = socket;
-                            controlSocketOutputStream = socket.getOutputStream();
+                            controlSocket = tmpControlsocket;
+                            controlSocketOutputStream = tmpControlsocket.getOutputStream();
+                            LOGGER.info("scrcpy control socket 建立成功!!");
+                            onStartup(true);
+                            break;
                         }
                     } catch (Exception e) {
                         e.printStackTrace();
-                        if (socket != null) {
+                        if(tmpVideoSocket != null){
                             try {
-                                socket.close();
+                                tmpVideoSocket.close();
+                            }catch (IOException ex){
+                                ex.printStackTrace();
+                            }
+                        }
+
+                        if (tmpControlsocket != null) {
+                            try {
+                                tmpControlsocket.close();
                             } catch (IOException ex) {
                                 ex.printStackTrace();
                             }
@@ -266,7 +304,9 @@ public class ScrcpyTouchService extends AbstractTouchEventService {
                     }
 
                     tryTime--;
+                    LOGGER.info("retry to connect to scrcpy server socket:" + tryTime);
                     if (tryTime == 0) {
+                        onStartup(false);
                         break;
                     }
                 }
@@ -306,6 +346,7 @@ public class ScrcpyTouchService extends AbstractTouchEventService {
             }
         });
         if (!isDebug) {
+            LOGGER.info("启动scrcpy server！");
             thread.start();
         }
         return thread;
@@ -314,6 +355,8 @@ public class ScrcpyTouchService extends AbstractTouchEventService {
     @Override
     public void kill() {
         LOGGER.info("shutdown the scrcpy touch service:" + this.device.getSerialNumber());
+        AdbUtils.removeForward(device,forward);
+        onClose();
         if (scrcpyServerCmdThread != null) {
             scrcpyServerCmdThread.stop();
         }

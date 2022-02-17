@@ -34,9 +34,10 @@ import com.yeetor.androidcontrol.Protocol;
 import com.yeetor.minicap.Banner;
 import com.yeetor.minicap.Minicap;
 import com.yeetor.minicap.MinicapListener;
+import com.yeetor.touch.TouchEventService;
 import com.yeetor.touch.TouchServiceException;
 import com.yeetor.touch.minitouch.Minitouch;
-import com.yeetor.touch.minitouch.MinitouchListener;
+import com.yeetor.touch.TouchEventServiceListener;
 import com.yeetor.util.Constant;
 import io.netty.buffer.Unpooled;
 import io.netty.channel.ChannelHandlerContext;
@@ -49,7 +50,7 @@ import java.util.concurrent.LinkedBlockingQueue;
 /**
  * Created by harry on 2017/4/19.
  */
-public class LocalClient extends BaseClient implements MinicapListener, MinitouchListener {
+public class LocalClient extends BaseClient implements MinicapListener, TouchEventServiceListener {
     static final int DATA_TIMEOUT = 100; //ms
     private boolean isWaitting = false;
     private BlockingQueue<ImageData> dataQueue = new LinkedBlockingQueue<ImageData>();
@@ -122,14 +123,14 @@ public class LocalClient extends BaseClient implements MinicapListener, Minitouc
     }
 
     @Override
-    public void onStartup(Minitouch minitouch, boolean success) {
+    public void onStartup(TouchEventService touchEventService, boolean success) {
         if (protocol != null && protocol.getBroswerSocket() != null && success) {
             protocol.getBroswerSocket().channel().writeAndFlush(new TextWebSocketFrame("minitouch://open"));
         }
     }
 
     @Override
-    public void onClose(Minitouch minitouch) {
+    public void onClose(TouchEventService touchEventService) {
         if (protocol != null && protocol.getBroswerSocket() != null) {
             protocol.getBroswerSocket().channel().writeAndFlush(new TextWebSocketFrame("minitouch://close"));
         }

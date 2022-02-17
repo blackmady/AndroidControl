@@ -29,9 +29,10 @@ package com.yeetor.engine;
 import com.google.common.util.concurrent.SettableFuture;
 import com.yeetor.adb.AdbDevice;
 import com.yeetor.adb.AdbServer;
+import com.yeetor.touch.TouchEventService;
 import com.yeetor.touch.TouchServiceException;
 import com.yeetor.touch.minitouch.Minitouch;
-import com.yeetor.touch.minitouch.MinitouchListener;
+import com.yeetor.touch.TouchEventServiceListener;
 
 import java.util.concurrent.ExecutionException;
 
@@ -60,14 +61,14 @@ public class EngineDevice {
         minitouch = new Minitouch(iDevice);
         SettableFuture future = SettableFuture.create();
 
-        minitouch.addEventListener(new MinitouchListener() {
+        minitouch.addEventListener(new TouchEventServiceListener() {
             @Override
-            public void onStartup(Minitouch minitouch, boolean success) {
+            public void onStartup(TouchEventService touchEventService, boolean success) {
                 future.set(success);
             }
 
             @Override
-            public void onClose(Minitouch minitouch) {
+            public void onClose(TouchEventService touchEventService) {
                 minitouchOpen = false;
             }
         });

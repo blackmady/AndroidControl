@@ -32,6 +32,7 @@ import com.yeetor.adb.AdbForward;
 import com.yeetor.adb.AdbServer;
 import com.yeetor.adb.AdbUtils;
 import com.yeetor.touch.AbstractTouchEventService;
+import com.yeetor.touch.TouchEventServiceListener;
 import com.yeetor.touch.TouchServiceException;
 import com.yeetor.util.Constant;
 import org.apache.commons.lang3.StringUtils;
@@ -52,8 +53,6 @@ public class Minitouch extends AbstractTouchEventService {
     private static final String MINITOUCH_BIN_DIR = "resources" + File.separator + "minicap-bin";
     private static final String REMOTE_PATH = "/data/local/tmp";
     private static final String MINITOUCH_BIN = "minitouch";
-
-    private List<MinitouchListener> listenerList = new ArrayList<MinitouchListener>();
 
     private AdbDevice device;
     private Thread minitouchThread, minitouchInitialThread;
@@ -108,11 +107,6 @@ public class Minitouch extends AbstractTouchEventService {
         this(AdbServer.server().getFirstDevice());
     }
 
-    public void addEventListener(MinitouchListener listener) {
-        if (listener != null) {
-            this.listenerList.add(listener);
-        }
-    }
 
     @Override
     public void start() throws TouchServiceException {
@@ -233,18 +227,5 @@ public class Minitouch extends AbstractTouchEventService {
         });
         thread.start();
         return thread;
-    }
-
-    private void onStartup(boolean success) {
-        for (MinitouchListener listener : listenerList) {
-            listener.onStartup(this, success);
-        }
-    }
-
-    private void onClose() {
-        for (MinitouchListener listener : listenerList) {
-            listener.onClose(this);
-        }
-        AdbUtils.removeForward(device,forward);
     }
 }

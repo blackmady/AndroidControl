@@ -24,14 +24,16 @@
  *
  */
 
-package com.yeetor.touch.minitouch;
+package com.yeetor.touch;
+
+import com.yeetor.touch.minitouch.Minitouch;
 
 /**
  * Created by harry on 2017/4/19.
  */
-public interface MinitouchListener {
+public interface TouchEventServiceListener {
     // minitouch启动完毕后
-    public void onStartup(Minitouch minitouch, boolean success);
+    public void onStartup(TouchEventService touchEventService, boolean success);
     // minitouch关闭后
-    public void onClose(Minitouch minitouch);
+    public void onClose(TouchEventService touchEventService);
 }

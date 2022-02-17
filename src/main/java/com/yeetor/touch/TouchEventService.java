@@ -44,4 +44,6 @@ public interface TouchEventService {
     void start() throws TouchServiceException;
 
     void kill();
+
+    void addEventListener(TouchEventServiceListener listener);
 }

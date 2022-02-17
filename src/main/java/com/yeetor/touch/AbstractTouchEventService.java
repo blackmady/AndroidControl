@@ -27,10 +27,19 @@
 package com.yeetor.touch;
 
 import com.yeetor.adb.AdbDevice;
+import com.yeetor.adb.AdbUtils;
+
+import java.util.ArrayList;
+import java.util.List;
 
 public abstract class AbstractTouchEventService implements TouchEventService{
 
     protected final AdbDevice device;
+
+    // 是否每次都覆盖安装刷新
+    protected boolean forceInstall;
+
+    protected List<TouchEventServiceListener> listenerList = new ArrayList<TouchEventServiceListener>();
 
     public AbstractTouchEventService(AdbDevice adbDevice){
         this.device = adbDevice;
@@ -46,7 +55,7 @@ public abstract class AbstractTouchEventService implements TouchEventService{
             throw new TouchServiceException("device can not be null");
         }
 
-        if(isInstalled()){
+        if(isInstalled() && !forceInstall){
            return;
         }
 
@@ -54,5 +63,24 @@ public abstract class AbstractTouchEventService implements TouchEventService{
     }
 
     protected abstract boolean isInstalled();
+
+    @Override
+    public void addEventListener(TouchEventServiceListener listener) {
+        if (listener != null) {
+            this.listenerList.add(listener);
+        }
+    }
+
+    protected void onStartup(boolean success) {
+        for (TouchEventServiceListener listener : listenerList) {
+            listener.onStartup(this, success);
+        }
+    }
+
+    protected void onClose() {
+        for (TouchEventServiceListener listener : listenerList) {
+            listener.onClose(this);
+        }
+    }
 
 }

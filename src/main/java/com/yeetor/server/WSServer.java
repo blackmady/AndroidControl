@@ -38,7 +38,7 @@ import com.yeetor.minicap.MinicapListener;
 import com.yeetor.touch.TouchEventService;
 import com.yeetor.touch.TouchServiceException;
 import com.yeetor.touch.minitouch.Minitouch;
-import com.yeetor.touch.minitouch.MinitouchListener;
+import com.yeetor.touch.TouchEventServiceListener;
 import com.yeetor.protocol.BinaryProtocol;
 import com.yeetor.protocol.TextProtocol;
 import com.yeetor.server.handler.IWebsocketEvent;
@@ -56,7 +56,7 @@ import java.util.HashMap;
 import java.util.concurrent.BlockingQueue;
 import java.util.concurrent.LinkedBlockingQueue;
 
-public class WSServer implements IWebsocketEvent, MinicapListener, MinitouchListener, IAdbServerListener {
+public class WSServer implements IWebsocketEvent, MinicapListener, TouchEventServiceListener, IAdbServerListener {
 
     private static Logger logger = Logger.getLogger(WSServer.class);
     
@@ -73,7 +73,7 @@ public class WSServer implements IWebsocketEvent, MinicapListener, MinitouchList
     /**
      * Minitouch
      */
-    TouchEventService eventService = null;
+    com.yeetor.touch.TouchEventService eventService = null;
 
     Channel channel = null;
 
@@ -225,7 +225,7 @@ public class WSServer implements IWebsocketEvent, MinicapListener, MinitouchList
             this.eventService = new Minitouch(bindedDevice);
         }
 
-        // this.eventService.addEventListener(this);
+        this.eventService.addEventListener(this);
         try {
             this.eventService.start();
         } catch (TouchServiceException e) {
@@ -361,7 +361,7 @@ public class WSServer implements IWebsocketEvent, MinicapListener, MinitouchList
     /*********************************************************************************/
     
     @Override
-    public void onStartup(Minitouch minitouch, boolean success) {
+    public void onStartup(TouchEventService touchEventService, boolean success) {
         HashMap<String, String> map = new HashMap<>();
         map.put("type", "event");
         map.put("stat", "open");
@@ -370,7 +370,7 @@ public class WSServer implements IWebsocketEvent, MinicapListener, MinitouchList
     }
 
     @Override
-    public void onClose(Minitouch minitouch) {
+    public void onClose(TouchEventService touchEventService) {
         HashMap<String, String> map = new HashMap<>();
         map.put("type", "event");
         map.put("stat", "close");
