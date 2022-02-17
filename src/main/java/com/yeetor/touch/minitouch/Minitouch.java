@@ -31,6 +31,7 @@ import com.yeetor.adb.AdbDevice;
 import com.yeetor.adb.AdbForward;
 import com.yeetor.adb.AdbServer;
 import com.yeetor.adb.AdbUtils;
+import com.yeetor.touch.AbstractTouchEventService;
 import com.yeetor.touch.TouchServiceException;
 import com.yeetor.util.Constant;
 import org.apache.commons.lang3.StringUtils;
@@ -46,7 +47,7 @@ import java.util.List;
 /**
  * Created by harry on 2017/4/19.
  */
-public class Minitouch {
+public class Minitouch extends AbstractTouchEventService {
 
     private static final String MINITOUCH_BIN_DIR = "resources" + File.separator + "minicap-bin";
     private static final String REMOTE_PATH = "/data/local/tmp";
@@ -60,15 +61,18 @@ public class Minitouch {
     private OutputStream minitouchOutputStream;
     private AdbForward forward;
 
-    public static void installMinitouch(AdbDevice device) throws TouchServiceException {
-        if (device == null) {
-            throw new TouchServiceException("device can't be null");
+    @Override
+    protected boolean isInstalled() {
+        if (device == null || device.getIDevice() == null) {
+            return false;
         }
+        String s = AdbServer.executeShellCommand(device.getIDevice(), String.format("%s/%s -i", REMOTE_PATH, MINITOUCH_BIN));
+        // TODO: 这里简单处理了一下
+        return s.startsWith("{");
+    }
 
-        if (isMinitouchInstalled(device)) {
-            return;
-        }
-
+    @Override
+    public void install() throws TouchServiceException {
         String sdk = device.getProperty(Constant.PROP_SDK);
         String abi = device.getProperty(Constant.PROP_ABI);
 
@@ -93,13 +97,7 @@ public class Minitouch {
     }
 
     public Minitouch(AdbDevice device) {
-        this.device = device;
-
-        try {
-            installMinitouch(device);
-        } catch (TouchServiceException e) {
-            e.printStackTrace();
-        }
+        super(device);
     }
 
     public Minitouch(String serialNumber) {
@@ -116,6 +114,7 @@ public class Minitouch {
         }
     }
 
+    @Override
     public void start() throws TouchServiceException {
         AdbForward forward = AdbUtils.createForward(device);
         if(forward == null){
@@ -126,6 +125,7 @@ public class Minitouch {
         minitouchInitialThread = startInitialThread("127.0.0.1", forward.getPort());
     }
 
+    @Override
     public void kill() {
         onClose();
         if (minitouchThread != null) {
@@ -141,7 +141,8 @@ public class Minitouch {
         }
     }
 
-    public void sendEvent(String str) {
+    @Override
+    public void sendTouchEvent(String str) {
         if (minitouchOutputStream == null) {
             return;
         }
@@ -152,10 +153,12 @@ public class Minitouch {
         }
     }
 
+    @Override
     public void sendKeyEvent(int k) {
         AdbServer.executeShellCommand(device.getIDevice(), "input keyevent " + k);
     }
 
+    @Override
     public void inputText(String str) {
         AdbServer.executeShellCommand(device.getIDevice(), "input text " + str);
     }
@@ -243,14 +246,5 @@ public class Minitouch {
             listener.onClose(this);
         }
         AdbUtils.removeForward(device,forward);
-    }
-
-    private static boolean isMinitouchInstalled(AdbDevice device) {
-        if (device == null || device.getIDevice() == null) {
-            return false;
-        }
-        String s = AdbServer.executeShellCommand(device.getIDevice(), String.format("%s/%s -i", REMOTE_PATH, MINITOUCH_BIN));
-        // TODO: 这里简单处理了一下
-        return s.startsWith("{");
     }
 }

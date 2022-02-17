@@ -35,12 +35,15 @@ import com.yeetor.adb.IAdbServerListener;
 import com.yeetor.minicap.Banner;
 import com.yeetor.minicap.Minicap;
 import com.yeetor.minicap.MinicapListener;
+import com.yeetor.touch.TouchEventService;
 import com.yeetor.touch.TouchServiceException;
 import com.yeetor.touch.minitouch.Minitouch;
 import com.yeetor.touch.minitouch.MinitouchListener;
 import com.yeetor.protocol.BinaryProtocol;
 import com.yeetor.protocol.TextProtocol;
 import com.yeetor.server.handler.IWebsocketEvent;
+import com.yeetor.touch.scrcpy.ScrcpyTouchService;
+import com.yeetor.util.Constant;
 import io.netty.buffer.Unpooled;
 import io.netty.channel.Channel;
 import io.netty.channel.ChannelHandlerContext;
@@ -70,7 +73,7 @@ public class WSServer implements IWebsocketEvent, MinicapListener, MinitouchList
     /**
      * Minitouch
      */
-    Minitouch eventService = null;
+    TouchEventService eventService = null;
 
     Channel channel = null;
 
@@ -171,7 +174,7 @@ public class WSServer implements IWebsocketEvent, MinicapListener, MinitouchList
     }
 
     private void onM_TOUCH(ChannelHandlerContext ctx, TextProtocol protocol) {
-        eventService.sendEvent(protocol.getProtocolBody());
+        eventService.sendTouchEvent(protocol.getProtocolBody());
     }
     
     private void onM_KEYEVENT(ChannelHandlerContext ctx, TextProtocol protocol) {
@@ -213,11 +216,18 @@ public class WSServer implements IWebsocketEvent, MinicapListener, MinitouchList
         if (eventService != null) {
             eventService.kill();
         }
-        Minitouch minitouch = new Minitouch(bindedDevice);
-        this.eventService = minitouch;
-        minitouch.addEventListener(this);
+
+        int sdk = Integer.parseInt(bindedDevice.getProperty(Constant.PROP_SDK));
+        // android10 以上使用scrcpy
+        if(sdk >= 29){
+            this.eventService = new ScrcpyTouchService(bindedDevice);
+        }else{
+            this.eventService = new Minitouch(bindedDevice);
+        }
+
+        // this.eventService.addEventListener(this);
         try {
-            minitouch.start();
+            this.eventService.start();
         } catch (TouchServiceException e) {
             e.printStackTrace();
         }

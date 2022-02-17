@@ -29,6 +29,7 @@ package com.yeetor.engine;
 import com.google.common.util.concurrent.SettableFuture;
 import com.yeetor.adb.AdbDevice;
 import com.yeetor.adb.AdbServer;
+import com.yeetor.touch.TouchServiceException;
 import com.yeetor.touch.minitouch.Minitouch;
 import com.yeetor.touch.minitouch.MinitouchListener;
 
@@ -70,7 +71,11 @@ public class EngineDevice {
                 minitouchOpen = false;
             }
         });
-        minitouch.start();
+        try {
+            minitouch.start();
+        } catch (TouchServiceException e) {
+            e.printStackTrace();
+        }
 
         // 等待，指导Minitouch启动完毕
         try {
@@ -90,15 +95,15 @@ public class EngineDevice {
     }
 
     public void touchDown(int x, int y) {
-        minitouch.sendEvent("d 0 " + x + " " + y + " 50\nc\n");
+        minitouch.sendTouchEvent("d 0 " + x + " " + y + " 50\nc\n");
     }
 
     public void touchMove(int x, int y) {
-        minitouch.sendEvent("m 0 " + x + " " + y + " 50\nc\n");
+        minitouch.sendTouchEvent("m 0 " + x + " " + y + " 50\nc\n");
     }
 
     public void touchUp() {
-        minitouch.sendEvent("u 0\nc\n");
+        minitouch.sendTouchEvent("u 0\nc\n");
 
     }
 

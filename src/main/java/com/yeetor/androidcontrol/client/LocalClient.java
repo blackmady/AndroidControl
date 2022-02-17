@@ -34,6 +34,7 @@ import com.yeetor.androidcontrol.Protocol;
 import com.yeetor.minicap.Banner;
 import com.yeetor.minicap.Minicap;
 import com.yeetor.minicap.MinicapListener;
+import com.yeetor.touch.TouchServiceException;
 import com.yeetor.touch.minitouch.Minitouch;
 import com.yeetor.touch.minitouch.MinitouchListener;
 import com.yeetor.util.Constant;
@@ -213,7 +214,7 @@ public class LocalClient extends BaseClient implements MinicapListener, Minitouc
 
     private void touchCommand(ChannelHandlerContext ctx, Command command) {
         String str = (String) command.getContent();
-        protocol.getMinitouch().sendEvent(str);
+        protocol.getMinitouch().sendTouchEvent(str);
     }
 
     private void inputCommand(Command command) {
@@ -261,7 +262,11 @@ public class LocalClient extends BaseClient implements MinicapListener, Minitouc
 
         Minitouch minitouch = new Minitouch(protocol.getSn());
         minitouch.addEventListener(this);
-        minitouch.start();
+        try {
+            minitouch.start();
+        } catch (TouchServiceException e) {
+            e.printStackTrace();
+        }
         protocol.setMinitouch(minitouch);
     }
 

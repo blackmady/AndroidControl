@@ -35,7 +35,7 @@ public interface TouchEventService {
 
     void install() throws TouchServiceException;
 
-    void sendEvent(String msg);
+    void sendTouchEvent(String msg);
 
     void sendKeyEvent(int key);
 

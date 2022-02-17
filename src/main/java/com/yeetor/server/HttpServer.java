@@ -77,6 +77,7 @@ public class HttpServer {
                             method.invoke(this, ctx, request, response);
                             return;
                         } catch (Exception e) {
+                            e.printStackTrace();
                             break;
                         }
                     }

@@ -36,6 +36,7 @@ import com.yeetor.androidcontrol.message.FileMessage;
 import com.yeetor.minicap.Banner;
 import com.yeetor.minicap.Minicap;
 import com.yeetor.minicap.MinicapListener;
+import com.yeetor.touch.TouchServiceException;
 import com.yeetor.touch.minitouch.Minitouch;
 import com.yeetor.touch.minitouch.MinitouchListener;
 import com.yeetor.util.Constant;
@@ -225,7 +226,7 @@ public class RemoteClient extends BaseClient implements MinicapListener, Minitou
 
     private void touchCommand( Command command) {
         String str = (String) command.getContent();
-        if (minitouch != null) minitouch.sendEvent(str);
+        if (minitouch != null) minitouch.sendTouchEvent(str);
     }
 
     private void inputCommand(Command command) {
@@ -270,7 +271,11 @@ public class RemoteClient extends BaseClient implements MinicapListener, Minitou
 
         Minitouch minitouch = new Minitouch(serialNumber);
         minitouch.addEventListener(this);
-        minitouch.start();
+        try {
+            minitouch.start();
+        } catch (TouchServiceException e) {
+            e.printStackTrace();
+        }
         this.minitouch = minitouch;
     }
 

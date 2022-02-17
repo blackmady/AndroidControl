@@ -220,7 +220,7 @@ public class AdbServer {
      * 与adb同步设备状态
      * why？有可能设备是通过wifi或bt连接，这样usb接口是检测不到的
      */
-    private void refreshAdbDeviceList() {
+    private synchronized void refreshAdbDeviceList() {
         List<AdbDevice> tmpAdbDeviceList = new ArrayList<>(this.adbDeviceList);
         IDevice[] iDevices = getIDevices();
         // 添加新的adb设备

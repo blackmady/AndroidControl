@@ -26,6 +26,8 @@
 
 package com.yeetor.touch.scrcpy.packet;
 
+import org.apache.log4j.Logger;
+
 import java.nio.ByteBuffer;
 
 /**
@@ -35,7 +37,9 @@ import java.nio.ByteBuffer;
  */
 public class TouchEventMsg implements ScControlMsg{
 
-    private static final int TOUCH_EVENT_MSG_LENGTH = 26;
+    private static final Logger LOGGER = Logger.getLogger(TouchEventMsg.class);
+
+    private static final int TOUCH_EVENT_MSG_LENGTH = 28;
 
     private int action;
 
@@ -53,8 +57,9 @@ public class TouchEventMsg implements ScControlMsg{
 
     private int buttons;
 
-    public TouchEventMsg(int action, int x, int y, int screenWidth, int screenHeight, int pressure) {
+    public TouchEventMsg(int action, int pointerId,int x, int y, int screenWidth, int screenHeight, int pressure) {
         this.action = action;
+        this.pointerId = pointerId;
         this.x = x;
         this.y = y;
         this.screenWidth = screenWidth;
@@ -64,6 +69,7 @@ public class TouchEventMsg implements ScControlMsg{
 
     @Override
     public byte[] serialize() {
+        LOGGER.error("serialize touch event message:" + toString());
         ByteBuffer byteBuffer = ByteBuffer.allocate(TOUCH_EVENT_MSG_LENGTH);
         byteBuffer.put((byte) TYPE_INJECT_TOUCH_EVENT);
         byteBuffer.put((byte) action);
@@ -75,5 +81,12 @@ public class TouchEventMsg implements ScControlMsg{
         byteBuffer.putShort((short) pressure);
         byteBuffer.putInt(buttons);
         return byteBuffer.array();
+    }
+
+    @Override
+    public String toString() {
+        return "{" + "action=" + action + ", pointerId=" + pointerId + ", x=" + x + ", y=" + y
+                + ", screenWidth=" + screenWidth + ", screenHeight=" + screenHeight + ", pressure=" + pressure
+                + ", buttons=" + buttons + '}';
     }
 }
