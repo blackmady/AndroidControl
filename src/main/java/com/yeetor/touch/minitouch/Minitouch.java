@@ -54,7 +54,6 @@ public class Minitouch extends AbstractTouchEventService {
     private static final String REMOTE_PATH = "/data/local/tmp";
     private static final String MINITOUCH_BIN = "minitouch";
 
-    private AdbDevice device;
     private Thread minitouchThread, minitouchInitialThread;
     private Socket minitouchSocket;
     private OutputStream minitouchOutputStream;
@@ -110,7 +109,7 @@ public class Minitouch extends AbstractTouchEventService {
 
     @Override
     public void start() throws TouchServiceException {
-        AdbForward forward = AdbUtils.createForward(device);
+        forward = AdbUtils.createForward(device);
         if(forward == null){
             throw new TouchServiceException("create forward failed");
         }
