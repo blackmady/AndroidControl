@@ -61,7 +61,9 @@ public class AdbDevice {
     
     /** PropertyCahe KEY for screenSize 获取的是 widthxheight的字符串 */
     public static final String SCREEN_SIZE = "SCREEN_SIZE";
-    
+    public static final String SCREEN_WIDTH = "SCREEN_WIDTH";
+    public static final String SCREEN_HEIGHT = "SCREEN_HEIGHT";
+
     /** The claimed USB ADB interface. */
     private final UsbInterface iface;
     
@@ -211,10 +213,12 @@ public class AdbDevice {
         String shellCmd = sdkv > 17 ? "dumpsys window displays | sed -n '3,5p'" : "dumpsys window";
         String str = AdbServer.executeShellCommand(iDevice, shellCmd);
         if (str != null && !str.isEmpty()) {
-            Pattern pattern =  Pattern.compile("init=(\\d+x\\d+)");
+            Pattern pattern =  Pattern.compile("init=((\\d+)x(\\d+))");
             Matcher m = pattern.matcher(str);
             if (m.find()) {
                 propertyCahe.put(SCREEN_SIZE, m.group(1));
+                propertyCahe.put(SCREEN_WIDTH, m.group(2));
+                propertyCahe.put(SCREEN_HEIGHT, m.group(3));
             }
         }
     }

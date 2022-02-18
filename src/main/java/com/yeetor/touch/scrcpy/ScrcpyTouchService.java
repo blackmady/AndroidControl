@@ -48,6 +48,9 @@ import java.net.Socket;
 import java.util.List;
 import java.util.concurrent.TimeUnit;
 
+import static com.yeetor.adb.AdbDevice.SCREEN_HEIGHT;
+import static com.yeetor.adb.AdbDevice.SCREEN_WIDTH;
+
 public class ScrcpyTouchService extends AbstractTouchEventService {
 
     private static final Logger LOGGER = Logger.getLogger(ScrcpyTouchService.class);
@@ -68,8 +71,8 @@ public class ScrcpyTouchService extends AbstractTouchEventService {
     private Socket controlSocket;
     private OutputStream controlSocketOutputStream;
 
-    private int screenWidth;
-    private int screenHeight;
+    private final int screenWidth;
+    private final int screenHeight;
 
     /**
      * minitouch协议按压和松开分成两个报文发送，且松开不携带坐标数据，而scrcpy按压松开均需要坐标数据，因此需要保存上次坐标信息
@@ -81,8 +84,8 @@ public class ScrcpyTouchService extends AbstractTouchEventService {
     public ScrcpyTouchService(AdbDevice adbDevice) {
         super(adbDevice);
         LOGGER.info("============> create scrcpy touch service:" + adbDevice.getSerialNumber());
-        this.screenWidth = 1080;
-        this.screenHeight = 2400;
+        this.screenWidth = Integer.parseInt(adbDevice.getProperty(SCREEN_WIDTH));
+        this.screenHeight = Integer.parseInt(adbDevice.getProperty(SCREEN_HEIGHT));
         this.forceInstall = true;
     }
 
