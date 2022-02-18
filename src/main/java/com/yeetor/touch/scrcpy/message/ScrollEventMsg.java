@@ -24,26 +24,17 @@
  *
  */
 
-package com.yeetor.touch.scrcpy.packet;
+package com.yeetor.touch.scrcpy.message;
 
 import org.apache.log4j.Logger;
 
 import java.nio.ByteBuffer;
 
-/**
- * Date: 2022/2/16
- *
- * @author alienhe
- */
-public class TouchEventMsg implements ScControlMsg{
+public class ScrollEventMsg implements ScControlMsg{
 
-    private static final Logger LOGGER = Logger.getLogger(TouchEventMsg.class);
+    private static final Logger LOGGER = Logger.getLogger(ScrollEventMsg.class);
 
-    private static final int TOUCH_EVENT_MSG_LENGTH = 28;
-
-    private int action;
-
-    private long pointerId;
+    public static final int SCROLL_EVENT_MSG_LENGTH = 25;
 
     /**
      * position
@@ -53,40 +44,41 @@ public class TouchEventMsg implements ScControlMsg{
     private int screenWidth;
     private int screenHeight;
 
-    private int pressure;
-
+    /**
+     * 水平滚动/垂直滚动
+     */
+    private int hScroll;
+    private int vScroll;
     private int buttons;
 
-    public TouchEventMsg(int action, int pointerId,int x, int y, int screenWidth, int screenHeight, int pressure) {
-        this.action = action;
-        this.pointerId = pointerId;
+    public ScrollEventMsg() {
+    }
+
+    public ScrollEventMsg(int x, int y, int screenWidth, int screenHeight) {
         this.x = x;
         this.y = y;
         this.screenWidth = screenWidth;
         this.screenHeight = screenHeight;
-        this.pressure = pressure;
     }
 
     @Override
     public byte[] serialize() {
-        LOGGER.error("serialize touch event message:" + toString());
-        ByteBuffer byteBuffer = ByteBuffer.allocate(TOUCH_EVENT_MSG_LENGTH);
-        byteBuffer.put((byte) TYPE_INJECT_TOUCH_EVENT);
-        byteBuffer.put((byte) action);
-        byteBuffer.putLong(pointerId);
+        LOGGER.info("serialize scroll event message:" + this);
+        ByteBuffer byteBuffer = ByteBuffer.allocate(SCROLL_EVENT_MSG_LENGTH);
+        byteBuffer.put((byte) TYPE_INJECT_SCROLL_EVENT);
         byteBuffer.putInt(x);
         byteBuffer.putInt(y);
         byteBuffer.putShort((short) screenWidth);
         byteBuffer.putShort((short) screenHeight);
-        byteBuffer.putShort((short) pressure);
+        byteBuffer.putInt(hScroll);
+        byteBuffer.putInt(vScroll);
         byteBuffer.putInt(buttons);
         return byteBuffer.array();
     }
 
     @Override
     public String toString() {
-        return "{" + "action=" + action + ", pointerId=" + pointerId + ", x=" + x + ", y=" + y
-                + ", screenWidth=" + screenWidth + ", screenHeight=" + screenHeight + ", pressure=" + pressure
-                + ", buttons=" + buttons + '}';
+        return "{" + "x=" + x + ", y=" + y + ", screenWidth=" + screenWidth + ", screenHeight="
+                + screenHeight + ", hScroll=" + hScroll + ", vScroll=" + vScroll + ", buttons=" + buttons + '}';
     }
 }

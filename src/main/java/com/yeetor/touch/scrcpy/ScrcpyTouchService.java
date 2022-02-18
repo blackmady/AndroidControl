@@ -26,10 +26,7 @@
 
 package com.yeetor.touch.scrcpy;
 
-import com.android.ddmlib.AdbCommandRejectedException;
 import com.android.ddmlib.IShellOutputReceiver;
-import com.android.ddmlib.ShellCommandUnresponsiveException;
-import com.android.ddmlib.TimeoutException;
 import com.google.common.collect.Lists;
 import com.yeetor.adb.AdbDevice;
 import com.yeetor.adb.AdbForward;
@@ -37,8 +34,9 @@ import com.yeetor.adb.AdbServer;
 import com.yeetor.adb.AdbUtils;
 import com.yeetor.touch.AbstractTouchEventService;
 import com.yeetor.touch.TouchServiceException;
-import com.yeetor.touch.scrcpy.packet.ScControlMsg;
-import com.yeetor.touch.scrcpy.packet.TouchEventMsg;
+import com.yeetor.touch.scrcpy.message.ScControlMsg;
+import com.yeetor.touch.scrcpy.message.ScrollEventMsg;
+import com.yeetor.touch.scrcpy.message.TouchEventMsg;
 import com.yeetor.util.Constant;
 import org.apache.commons.lang3.StringUtils;
 import org.apache.log4j.Logger;
@@ -99,7 +97,7 @@ public class ScrcpyTouchService extends AbstractTouchEventService {
 
     @Override
     public void install() throws TouchServiceException {
-        if(isDebug){
+        if (isDebug) {
             return;
         }
         // adb push scrcpy-server.jar to /data/local/tmp
@@ -153,6 +151,7 @@ public class ScrcpyTouchService extends AbstractTouchEventService {
                 y = Integer.parseInt(packets.get(3));
                 pressure = Integer.parseInt(packets.get(4));
 
+                // https://developer.android.com/reference/android/view/MotionEvent
                 // action: ACTION_UP 1 / ACTION_DOWN 0
                 eventMsg = new TouchEventMsg(0, contact, x, y, screenWidth, screenHeight, pressure);
                 break;
@@ -168,6 +167,12 @@ public class ScrcpyTouchService extends AbstractTouchEventService {
                 break;
             case "m":
                 // m <contact> <x> <y> <pressure> 滑动
+                contact = Integer.parseInt(packets.get(1));
+                x = Integer.parseInt(packets.get(2));
+                y = Integer.parseInt(packets.get(3));
+
+                // action: ACTION_MOVE
+                eventMsg = new TouchEventMsg(2, contact, x, y, screenWidth, screenHeight, pressure);
                 break;
             case "c":
                 // ignore the commit message
@@ -193,12 +198,14 @@ public class ScrcpyTouchService extends AbstractTouchEventService {
 
     @Override
     public void sendKeyEvent(int key) {
-
+        // ref: scrcpy app/tests/test_control_msg_serialize.c:test_serialize_inject_keycode
+        // can use scrcpy or use adb shell input keyevent
+        AdbServer.executeShellCommand(device.getIDevice(), "input keyevent " + key);
     }
 
     @Override
     public void inputText(String text) {
-
+        AdbServer.executeShellCommand(device.getIDevice(), "input text " + text);
     }
 
     @Override
@@ -261,11 +268,12 @@ public class ScrcpyTouchService extends AbstractTouchEventService {
                         tmpVideoSocket = new Socket(host, port);
                         // read one byte to test the connection
                         int readNum = tmpVideoSocket.getInputStream().read(bytes);
-                        if(readNum == -1){
+                        if (readNum == -1) {
                             Thread.sleep(10);
                             tmpVideoSocket.close();
+                            LOGGER.info("scrcpy video socket 建立失败!");
                             continue;
-                        }else {
+                        } else {
                             videoSocket = tmpVideoSocket;
                             LOGGER.info("scrcpy video socket 建立成功!");
                         }
@@ -273,11 +281,12 @@ public class ScrcpyTouchService extends AbstractTouchEventService {
                         // 第二个才为control socket
                         tmpControlsocket = new Socket(host, port);
                         readNum = tmpControlsocket.getInputStream().read(bytes);
-                        if(readNum == -1){
+                        if (readNum == -1) {
                             Thread.sleep(10);
                             tmpControlsocket.close();
+                            LOGGER.info("scrcpy control socket 建立失败!");
                             continue;
-                        }else{
+                        } else {
                             controlSocket = tmpControlsocket;
                             controlSocketOutputStream = tmpControlsocket.getOutputStream();
                             LOGGER.info("scrcpy control socket 建立成功!!");
@@ -286,10 +295,10 @@ public class ScrcpyTouchService extends AbstractTouchEventService {
                         }
                     } catch (Exception e) {
                         e.printStackTrace();
-                        if(tmpVideoSocket != null){
+                        if (tmpVideoSocket != null) {
                             try {
                                 tmpVideoSocket.close();
-                            }catch (IOException ex){
+                            } catch (IOException ex) {
                                 ex.printStackTrace();
                             }
                         }
@@ -355,7 +364,7 @@ public class ScrcpyTouchService extends AbstractTouchEventService {
     @Override
     public void kill() {
         LOGGER.info("shutdown the scrcpy touch service:" + this.device.getSerialNumber());
-        AdbUtils.removeForward(device,forward);
+        AdbUtils.removeForward(device, forward);
         onClose();
         if (scrcpyServerCmdThread != null) {
             scrcpyServerCmdThread.stop();

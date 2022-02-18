@@ -24,7 +24,7 @@
  *
  */
 
-package com.yeetor.touch.scrcpy.packet;
+package com.yeetor.touch.scrcpy.message;
 
 /**
  * Date: 2022/2/16
