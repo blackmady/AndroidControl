@@ -131,6 +131,7 @@ let serverList = new Vue({
     },
     methods: {
         addServer: function (ip, port) {
+            console.log("add server: [" + ip + ":" + port + "]");
             let server = new Server(ip, port)
             this.serverList.push(server)
             server.connect()

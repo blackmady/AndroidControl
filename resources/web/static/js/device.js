@@ -1,5 +1,16 @@
 
-let ip = "127.0.0.1"
+function getCurrentIp(){
+    const host = window.location.host;
+    if(host.indexOf(':') > 0){
+        let ip = host.split(":")[0];
+        console.log("current ip:" + ip);
+        return ip;
+    }else{
+        return "127.0.0.1";
+    }
+}
+
+let ip = getCurrentIp()
 let port = 6655
 
 /** nav-height:24px */
