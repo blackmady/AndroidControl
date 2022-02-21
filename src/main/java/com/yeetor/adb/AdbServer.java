@@ -90,10 +90,10 @@ public class AdbServer {
                 while (true) {
                     try {
                         Thread.sleep(1500);
-                    } catch (InterruptedException e) {
+                        refreshAdbDeviceList();
+                    } catch (Exception e) {
                         e.printStackTrace();
                     }
-                    refreshAdbDeviceList();
                 }
             }
         }.start();

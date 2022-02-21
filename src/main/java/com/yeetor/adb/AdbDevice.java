@@ -31,6 +31,7 @@ import com.google.common.base.Strings;
 import com.sun.javafx.css.Size;
 import com.yeetor.util.Constant;
 import javafx.geometry.Bounds;
+import org.apache.commons.lang3.StringUtils;
 import org.apache.log4j.Logger;
 
 import javax.usb.UsbDevice;
@@ -207,7 +208,11 @@ public class AdbDevice {
         propertyCahe.put(Constant.PROP_ABI, abi);
         String sdk = iDevice.getProperty(Constant.PROP_SDK);
         propertyCahe.put(Constant.PROP_SDK, sdk);
-        
+
+        if(StringUtils.isBlank(sdk)){
+            return;
+        }
+
         // android 4.3 以下没有 displays
         int sdkv = Integer.parseInt(sdk);
         String shellCmd = sdkv > 17 ? "dumpsys window displays | sed -n '3,5p'" : "dumpsys window";

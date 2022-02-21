@@ -167,16 +167,15 @@ function phoneClick(sn) {
 }
 
 window.onload = function() {
-    
-    /** html 连接方式 */
-    // $.ajax({
-    //     url: "http://127.0.0.1:6655/devices",
-    //     success: function(data) {
-    //         device_list.devices = data;
-    //     }
-    // });
 
-    serverList.addServer('localhost', 6655)
+    /** html 连接方式 */
+    const host = window.location.host;
+    if(host.indexOf(':') > 0){
+        let data = host.split(":");
+        serverList.addServer(data[0],data[1]);
+    }else{
+        serverList.addServer('localhost', 6655)
+    }
 }
 
 /**
